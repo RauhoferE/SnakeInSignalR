@@ -12,16 +12,15 @@ namespace SnakeClientConsole
     using System;
     using System.Threading.Tasks;
     using NetworkLibrary;
+    using Microsoft.AspNetCore.SignalR;
+    using Microsoft.AspNetCore.SignalR.Client;
 
     /// <summary>
     /// The <see cref="App"/> class.
     /// </summary>
     public class App
     {
-        /// <summary>
-        /// The player client.
-        /// </summary>
-        private PlayerClient player;
+        private HubConnection connection;
 
         /// <summary>
         /// The input watcher.
@@ -98,7 +97,6 @@ namespace SnakeClientConsole
         public void Exit()
         {
             TaskFactory ts = new TaskFactory();
-            ts.StartNew(() => this.player.Stop());
             ts.StartNew(() => this.inputWatcher.Stop());
             ts.StartNew(() => this.windowWatcher.Stop());
             Environment.Exit(0);
@@ -109,31 +107,34 @@ namespace SnakeClientConsole
         /// </summary>
         /// <param name="sender"> The object sender. </param>
         /// <param name="e"> The <see cref="MessageContainerEventArgs"/>. </param>
-        private void StartClient(object sender, MessageContainerEventArgs e)
+        private async void StartClient(object sender, MessageContainerEventArgs e)
         {
             var adress = IPHelper.GetIPAdress(e.MessageContainer.Message);
-            this.player = new PlayerClient(adress);
-            this.player.OnErrorMessageReceived += this.renderer.PrintErrorMessage;
-            this.player.OnErrorMessageReceived += this.FatalErrorExit;
-            this.player.OnFieldMessageReceived += this.renderer.PrintField;
-            this.player.OnNormalTextReceived += this.renderer.PrintMessage;
-            this.player.OnObjectListReceived += this.renderer.PrintGameObjectsAndInfo;
-            this.player.OnServerDisconnect += this.CatchDisconnect;
+            //this.player = new PlayerClient(adress);
+            //this.player.OnErrorMessageReceived += this.renderer.PrintErrorMessage;
+            //this.player.OnErrorMessageReceived += this.FatalErrorExit;
+            //this.player.OnFieldMessageReceived += this.renderer.PrintField;
+            //this.player.OnNormalTextReceived += this.renderer.PrintMessage;
+            //this.player.OnObjectListReceived += this.renderer.PrintGameObjectsAndInfo;
+            //this.player.OnServerDisconnect += this.CatchDisconnect;
+            this.connection = new HubConnectionBuilder()
+            .WithUrl("http://localhost:53353/ChatHub")
+            .Build();
+
+            connection.Closed += async (error) =>
+            {
+                await Task.Delay(new Random().Next(0, 5) * 1000);
+                await connection.StartAsync();
+            };
+
 
             this.inputWatcher.OnKeyInputReceived -= this.ipAdressCreator.GetInput;
             this.inputWatcher.OnKeyInputReceived += this.validator.GetInput;
             this.validator.OnSnakeMoved += this.SendSnakeMovement;
 
-            try
-            {
-                this.player.Start();
-            }
-            catch (Exception ex)
-            {
-                this.renderer.PrintErrorMessage(this, new MessageContainerEventArgs(new MessageContainer(ex.Message)));
-                Environment.Exit(1);
-            }
         }
+
+
 
         /// <summary>
         /// This method exits the client on error.
@@ -165,13 +166,12 @@ namespace SnakeClientConsole
         {
             try
             {
-               this.player.SendMessage(NetworkSerealizer.SerealizeMoveSnake(e.Container));
+               //this.player.SendMessage(NetworkSerealizer.SerealizeMoveSnake(e.Container));
             }
             catch (Exception exception)
             {
                 this.renderer.PrintErrorMessage(this, new MessageContainerEventArgs(new MessageContainer(exception.Message)));
                 TaskFactory ts = new TaskFactory();
-                ts.StartNew(() => this.player.Stop());
                 ts.StartNew(() => this.inputWatcher.Stop());
                 ts.StartNew(() => this.windowWatcher.Stop());
                 Environment.Exit(1);
@@ -186,8 +186,7 @@ namespace SnakeClientConsole
         private void CatchDisconnect(object sender, EventArgs e)
         {
             this.renderer.PrintErrorMessage(this, new MessageContainerEventArgs(new MessageContainer("Error server has disconnected.")));
-            TaskFactory ts = new TaskFactory();
-            ts.StartNew(() => this.player.Stop()); 
+            TaskFactory ts = new TaskFactory(); 
             ts.StartNew(() => this.inputWatcher.Stop()); 
             ts.StartNew(() => this.windowWatcher.Stop()); 
             Environment.Exit(1);
