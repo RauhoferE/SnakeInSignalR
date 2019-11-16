@@ -3,13 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29326.143
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnakeServer", "SnakeServer\SnakeServer.csproj", "{3B6A975B-2C5A-4449-BE38-931B708F07CC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnakeServer", "SnakeServer\SnakeServer.csproj", "{3B6A975B-2C5A-4449-BE38-931B708F07CC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Snake_V_0_3", "Snake_V_0_3\Snake_V_0_3.csproj", "{67B48BDB-57B0-4647-8D52-D21F329C0ED4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WPFClientSnake", "WPFClientSnake\WPFClientSnake.csproj", "{24F4983E-70B8-408F-8B25-C704F05AB736}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnakeClientConsole", "SnakeClientConsole\SnakeClientConsole.csproj", "{42A890B8-E07F-4F9D-B359-5904F48C6997}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkLibrary", "NetworkLibrary\NetworkLibrary.csproj", "{ECCA2B8A-4A26-44BB-9B80-7FBF91F4740F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{42A890B8-E07F-4F9D-B359-5904F48C6997}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{42A890B8-E07F-4F9D-B359-5904F48C6997}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{42A890B8-E07F-4F9D-B359-5904F48C6997}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECCA2B8A-4A26-44BB-9B80-7FBF91F4740F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECCA2B8A-4A26-44BB-9B80-7FBF91F4740F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECCA2B8A-4A26-44BB-9B80-7FBF91F4740F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECCA2B8A-4A26-44BB-9B80-7FBF91F4740F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
