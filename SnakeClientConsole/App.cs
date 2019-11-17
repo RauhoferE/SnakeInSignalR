@@ -133,14 +133,17 @@ namespace SnakeClientConsole
                 this.renderer.PrintMessage(this, new MessageContainerEventArgs(new MessageContainer(text)));
             });
 
-            this.connection.On<ObjectListContainer>("GameContainer", (text) =>
+            this.connection.On<string>("GameContainer", (text) =>
             {
-                this.renderer.PrintGameObjectsAndInfo(this, new ObjectPrintEventArgs(text));
+                //TODO: Position in objects are null!!!!!!!!!!!!!!!!!!!!!!!!!!HELP ME Im Suffering
+                var ob = Newtonsoft.Json.JsonConvert.DeserializeObject<ObjectListContainer>(text);
+                this.renderer.PrintGameObjectsAndInfo(this, new ObjectPrintEventArgs(ob));
             });
 
-            this.connection.On<FieldPrintContainer>("FieldMessage", (text) =>
+            this.connection.On<string>("FieldMessage", (text) =>
             {
-                this.renderer.PrintField(this, new FieldMessageEventArgs(text));
+                var ob = Newtonsoft.Json.JsonConvert.DeserializeObject<FieldPrintContainer>(text);
+                this.renderer.PrintField(this, new FieldMessageEventArgs(ob));
             });
 
             await connection.StartAsync();
@@ -181,7 +184,8 @@ namespace SnakeClientConsole
         {
             try
             {
-                await this.connection.InvokeAsync("OnInput", e.Container);
+                string s = Newtonsoft.Json.JsonConvert.SerializeObject(e.Container);
+                await this.connection.InvokeAsync("OnInput", s);
                //this.player.SendMessage(NetworkSerealizer.SerealizeMoveSnake(e.Container));
             }
             catch (Exception exception)

@@ -35,6 +35,7 @@ namespace NetworkLibrary
         public int X
         {
             get;
+            set;
         }
 
         /// <summary>
@@ -44,6 +45,7 @@ namespace NetworkLibrary
         public int Y
         {
             get;
+            set;
         }
     }
 }

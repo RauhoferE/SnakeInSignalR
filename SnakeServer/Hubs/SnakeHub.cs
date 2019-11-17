@@ -23,7 +23,6 @@ namespace SnakeServer
             this.snakeContext = context;
             this.logger = ilogger;
             this.service = service;
-            this.service.Game.OnGameStart += this.OnGameStart;
             this.service.Game.OnGameOver += this.OnGameOver;
             this.service.Game.OnMessageReceived += this.OnSendMessage;
             this.service.Game.OnContainerCreated += this.SendContainer;
@@ -44,14 +43,14 @@ namespace SnakeServer
                 oldContainer.Add(new ObjectPrintContainer(gameObjectse.Icon.Character, new NetworkLibrary.Position(gameObjectse.Pos.X, gameObjectse.Pos.Y), gameObjectse.Color.ForeGroundColor));
             }
 
-            await this.snakeContext.Clients.All.SendAsync("GameContainer", new ObjectListContainer(oldContainer, newContainer, new GameInformationContainer(e.SnakeLength, e.Score)));
+            string json = Newtonsoft.Json.JsonConvert.SerializeObject(new ObjectListContainer(oldContainer, newContainer, new GameInformationContainer(e.SnakeLength, e.Score)));
+            await this.snakeContext.Clients.All.SendAsync("GameContainer", json);
         }
 
         public async void OnGameOver(object sender, EventArgs e)
         {
             this.service.Game = new Application();
-            this.service.Game.OnGameStart += this.OnGameOver;
-            this.service.Game.OnGameOver += this.OnGameStart;
+            this.service.Game.OnGameOver += this.OnGameOver;
             this.service.Game.OnMessageReceived += this.OnSendMessage;
             this.service.Game.OnContainerCreated += this.SendContainer;
             await this.snakeContext.Clients.All.SendAsync("Message", "Game over press any key to start new.");
@@ -79,7 +78,8 @@ namespace SnakeServer
                 this.logger.LogInformation("Game Resumed");
                 this.service.IsPaused = false;
                 var field = this.service.Game.GetField();
-                await base.Clients.Caller.SendAsync("FieldMessage", new FieldPrintContainer(field.Width, field.Length, field.Icon.Character));
+                string json = Newtonsoft.Json.JsonConvert.SerializeObject(new FieldPrintContainer(field.Width, field.Length, field.Icon.Character));
+                await base.Clients.Caller.SendAsync("FieldMessage", json);
                 this.service.Game.Resume(this, EventArgs.Empty);
                 return;
             }
@@ -91,13 +91,20 @@ namespace SnakeServer
             this.logger.LogInformation("Client with id " + Context.ConnectionId + " disconnected.");
             if (this.service.ConnectedIds.Count == 0 && !this.service.IsGameOver)
             {
-                this.service.Game.Stop(this, EventArgs.Empty);
-                this.service.IsPaused = true;
+                try
+                {
+                    this.service.Game.Stop(this, EventArgs.Empty);
+                    this.service.IsPaused = true;
+                }
+                catch (Exception)
+                {
+                }
+
             }
             return base.OnDisconnectedAsync(exception);
         }
 
-        public async Task OnInput(object e)
+        public async Task OnInput(string e)
         {
             if (this.service.IsGameOver)
             {
@@ -106,7 +113,8 @@ namespace SnakeServer
                 return;
             }
 
-            MoveSnakeContainer z = (MoveSnakeContainer)e;
+            
+            MoveSnakeContainer z = Newtonsoft.Json.JsonConvert.DeserializeObject<MoveSnakeContainer>(e);
             this.logger.LogInformation(z.SnakeMoveCommand + " pressed by " + Context.ConnectionId);
 
             if (z.SnakeMoveCommand.Id == 999)
@@ -140,22 +148,19 @@ namespace SnakeServer
             }
         }
 
-        public async  void OnGameStart(object sender, EventArgs e)
-        {
-            logger.LogInformation("Game start.");
-            var field = this.service.Game.GetField();
-            await this.snakeContext.Clients.All.SendAsync("FieldMessage", new FieldPrintContainer(field.Width, field.Length, field.Icon.Character));
-        }
-
-        private void RestartGame()
+        private async void RestartGame()
         {
             this.logger.LogInformation("Game restarted");
             this.service.Game = new Application();
-            this.service.Game.OnGameStart += this.OnGameOver;
-            this.service.Game.OnGameOver += this.OnGameStart;
+            this.service.Game.OnGameOver += this.OnGameOver;
             this.service.Game.OnMessageReceived += this.OnSendMessage;
             this.service.Game.OnContainerCreated += this.SendContainer;
             this.service.IsGameOver = false;
+            logger.LogInformation("Game start.");
+            var field = this.service.Game.GetField();
+            string json = Newtonsoft.Json.JsonConvert.SerializeObject(new FieldPrintContainer(field.Width, field.Length, field.Icon.Character));
+
+            await this.snakeContext.Clients.All.SendAsync("FieldMessage", json);
         }
     }
 }

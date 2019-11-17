@@ -46,6 +46,7 @@ namespace NetworkLibrary
         public Position PosInField
         {
             get;
+            set;
         }
 
         /// <summary>
