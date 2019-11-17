@@ -14,6 +14,8 @@ namespace SnakeClientConsole
     using NetworkLibrary;
     using Microsoft.AspNetCore.SignalR;
     using Microsoft.AspNetCore.SignalR.Client;
+    using System.IO;
+    using System.Runtime.Serialization.Formatters.Binary;
 
     /// <summary>
     /// The <see cref="App"/> class.
@@ -184,9 +186,31 @@ namespace SnakeClientConsole
         {
             try
             {
-                string s = Newtonsoft.Json.JsonConvert.SerializeObject(e.Container);
+                byte[] arr;
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    BinaryFormatter bf = new BinaryFormatter();
+                    bf.Serialize(ms, e.Container);
+                    arr = ms.ToArray();
+                }
+
+                string s = string.Empty;
+                int j = 0;
+                foreach (var item in arr)
+                {
+                    if (j == 0)
+                    {
+                        s = s + item;
+                    }
+                    else
+                    {
+                        s = s + "," + item;
+                    }
+
+                    j++;
+                }
+                //string s = Newtonsoft.Json.JsonConvert.SerializeObject(e.Container);
                 await this.connection.InvokeAsync("OnInput", s);
-               //this.player.SendMessage(NetworkSerealizer.SerealizeMoveSnake(e.Container));
             }
             catch (Exception exception)
             {

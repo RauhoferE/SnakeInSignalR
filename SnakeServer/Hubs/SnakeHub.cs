@@ -9,6 +9,8 @@ namespace SnakeServer
     using Microsoft.Extensions.Logging;
     using NetworkLibrary;
     using Snake_V_0_3;
+    using System.IO;
+    using System.Runtime.Serialization.Formatters.Binary;
 
     public class SnakeHub : Hub
     {
@@ -113,11 +115,36 @@ namespace SnakeServer
                 return;
             }
 
-            
-            MoveSnakeContainer z = Newtonsoft.Json.JsonConvert.DeserializeObject<MoveSnakeContainer>(e);
-            this.logger.LogInformation(z.SnakeMoveCommand + " pressed by " + Context.ConnectionId);
+            MoveSnakeContainer mv;
+            try
+            {
 
-            if (z.SnakeMoveCommand.Id == 999)
+
+
+                List<byte> bb = new List<byte>();
+                foreach (var item in e.Split(","))
+                {
+                    bb.Add(byte.Parse(item));
+                }
+
+                
+
+                using (MemoryStream ms = new MemoryStream(bb.ToArray()))
+                {
+                    BinaryFormatter bin = new BinaryFormatter();
+                    mv = (MoveSnakeContainer)bin.Deserialize(ms);
+                }
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogInformation(ex.Message);
+                return;
+            }
+            
+            //MoveSnakeContainer z = Newtonsoft.Json.JsonConvert.DeserializeObject<MoveSnakeContainer>(e);
+            this.logger.LogInformation(mv.SnakeMoveCommand + " pressed by " + Context.ConnectionId);
+
+            if (mv.SnakeMoveCommand.Id == 999)
             {
                 return;
             }
@@ -125,7 +152,7 @@ namespace SnakeServer
             {
                 DirectionEventArgs directionEvent = null;
 
-                switch (z.SnakeMoveCommand.Id)
+                switch (mv.SnakeMoveCommand.Id)
                 {
                     case 0:
                         directionEvent = new DirectionEventArgs(new DirectionUp());
