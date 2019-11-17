@@ -13,6 +13,7 @@ namespace Snake_V_0_3
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// The <see cref="ObjectContainer"/> class.
@@ -250,7 +251,7 @@ namespace Snake_V_0_3
                         oldObj.Add(element);
                     }
 
-                    this.FireOnPrintGameList(new GameOBjectListEventArgs(newObj, oldObj, this.Score, this.NewSnake.Count));
+                    Task.Factory.StartNew(() => this.FireOnPrintGameList(new GameOBjectListEventArgs(newObj, oldObj, this.Score, this.NewSnake.Count)));
 
                     this.OldPowerUps.Clear();
                 }

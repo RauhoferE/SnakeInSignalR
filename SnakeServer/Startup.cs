@@ -17,6 +17,7 @@ namespace SnakeServer
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSignalR();
+            services.AddSingleton<ISnakeService, SnakeService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

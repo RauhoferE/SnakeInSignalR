@@ -118,7 +118,8 @@ namespace SnakeClientConsole
             //this.player.OnObjectListReceived += this.renderer.PrintGameObjectsAndInfo;
             //this.player.OnServerDisconnect += this.CatchDisconnect;
             this.connection = new HubConnectionBuilder()
-            .WithUrl("http://localhost:53353/ChatHub")
+            .WithUrl("https://localhost:44312/Snake")
+            .WithAutomaticReconnect()
             .Build();
 
             connection.Closed += async (error) =>
@@ -127,11 +128,25 @@ namespace SnakeClientConsole
                 await connection.StartAsync();
             };
 
+            this.connection.On<string>("Message", (text) =>
+            {
+                this.renderer.PrintMessage(this, new MessageContainerEventArgs(new MessageContainer(text)));
+            });
 
+            this.connection.On<ObjectListContainer>("GameContainer", (text) =>
+            {
+                this.renderer.PrintGameObjectsAndInfo(this, new ObjectPrintEventArgs(text));
+            });
+
+            this.connection.On<FieldPrintContainer>("FieldMessage", (text) =>
+            {
+                this.renderer.PrintField(this, new FieldMessageEventArgs(text));
+            });
+
+            await connection.StartAsync();
             this.inputWatcher.OnKeyInputReceived -= this.ipAdressCreator.GetInput;
             this.inputWatcher.OnKeyInputReceived += this.validator.GetInput;
             this.validator.OnSnakeMoved += this.SendSnakeMovement;
-
         }
 
 
@@ -162,10 +177,11 @@ namespace SnakeClientConsole
         /// </summary>
         /// <param name="sender"> The object sender. </param>
         /// <param name="e"> The <see cref="ClientSnakeMovementEventArgs"/>. </param>
-        private void SendSnakeMovement(object sender, ClientSnakeMovementEventArgs e)
+        private async void SendSnakeMovement(object sender, ClientSnakeMovementEventArgs e)
         {
             try
             {
+                await this.connection.InvokeAsync("OnInput", e.Container);
                //this.player.SendMessage(NetworkSerealizer.SerealizeMoveSnake(e.Container));
             }
             catch (Exception exception)
