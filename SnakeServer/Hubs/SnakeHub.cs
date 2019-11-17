@@ -55,6 +55,7 @@ namespace SnakeServer
             this.service.Game.OnGameOver += this.OnGameOver;
             this.service.Game.OnMessageReceived += this.OnSendMessage;
             this.service.Game.OnContainerCreated += this.SendContainer;
+            this.service.IsGameOver = true;
             await this.snakeContext.Clients.All.SendAsync("Message", "Game over press any key to start new.");
         }
 
@@ -170,8 +171,10 @@ namespace SnakeServer
                         directionEvent = new DirectionEventArgs(new DirectionDown());
                         break;
                 }
-
-                await Task.Factory.StartNew(() => this.service.Game.GetInput(this, directionEvent));
+                
+                //await Task.Factory.StartNew(() => this.service.Game.GetInput(this, directionEvent));
+                this.service.Game.GetInput(this, directionEvent);
+                this.logger.LogInformation(Context.ConnectionId + "command went through");
             }
         }
 
